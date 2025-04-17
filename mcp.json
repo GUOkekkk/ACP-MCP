@@ -1,0 +1,14 @@
+{
+    "servers": {
+        "ACP+MCP": {
+            "type": "stdio",
+            "command": "D:\\Data\\users\\Desktop\\ABB\\projects\\AI\\acp-mcp\\.venv\\Scripts\\uv.exe",
+            "args": [
+                "--directory",
+                "D:\\Data\\users\\Desktop\\ABB\\projects\\AI\\acp-mcp",
+                "run",
+                "server.py"
+            ],
+        }
+    }
+}

@@ -1,0 +1,426 @@
+{
+  "controlCabinets": [
+    {
+      "id": "CAB001",
+      "controller": "R11",
+      "objectType": "Box",
+      "serialNumber": "SN20230001",
+      "manufacturingDate": "2023-01-15",
+      "status": "active",
+      "location": {
+        "plant": "上海工厂",
+        "building": "A",
+        "floor": 3,
+        "room": "R305",
+        "coordinates": {
+          "x": 123.45,
+          "y": 67.89,
+          "z": 2.5
+        }
+      },
+      "specifications": {
+        "dimensions": {
+          "height": 180.5,
+          "width": 80.2,
+          "depth": 60.0,
+          "unit": "cm"
+        },
+        "weight": {
+          "value": 125.7,
+          "unit": "kg"
+        },
+        "powerRequirements": {
+          "voltage": 380,
+          "frequency": 50,
+          "phases": 3,
+          "maxCurrent": 32
+        },
+        "environmentalRequirements": {
+          "operatingTemperature": {
+            "min": 5,
+            "max": 40,
+            "unit": "°C"
+          },
+          "humidity": {
+            "min": 20,
+            "max": 80,
+            "unit": "%RH"
+          },
+          "ipRating": "IP54"
+        }
+      },
+      "components": [
+        {
+          "id": "COMP001",
+          "type": "PLC",
+          "model": "ABB AC500-eCo",
+          "serialNumber": "PLC20230001",
+          "firmwareVersion": "2.5.1",
+          "status": "operational",
+          "lastMaintenance": "2023-06-10",
+          "connections": [
+            {
+              "id": "CONN001",
+              "type": "Ethernet",
+              "ipAddress": "192.168.1.100",
+              "subnetMask": "255.255.255.0",
+              "gateway": "192.168.1.1"
+            },
+            {
+              "id": "CONN002",
+              "type": "Profibus",
+              "address": 2,
+              "baudRate": 1500
+            }
+          ]
+        },
+        {
+          "id": "COMP002",
+          "type": "HMI",
+          "model": "ABB CP600-eCo",
+          "serialNumber": "HMI20230002",
+          "firmwareVersion": "3.1.0",
+          "status": "operational",
+          "screenSize": 10.4,
+          "resolution": "800x600",
+          "touchType": "resistive"
+        },
+        {
+          "id": "COMP003",
+          "type": "PowerSupply",
+          "model": "ABB CP-E 24/10.0",
+          "serialNumber": "PS20230003",
+          "inputVoltage": "100-240VAC",
+          "outputVoltage": "24VDC",
+          "outputCurrent": 10,
+          "efficiency": 92.5
+        }
+      ],
+      "configuration": {
+        "networkSettings": {
+          "dhcpEnabled": false,
+          "staticIp": "192.168.1.50",
+          "subnetMask": "255.255.255.0",
+          "gateway": "192.168.1.1",
+          "dns": [
+            "8.8.8.8",
+            "8.8.4.4"
+          ]
+        },
+        "securitySettings": {
+          "accessControl": {
+            "enabled": true,
+            "authenticationMethod": "LDAP",
+            "userGroups": [
+              {
+                "name": "Administrators",
+                "permissions": ["read", "write", "execute", "configure"]
+              },
+              {
+                "name": "Operators",
+                "permissions": ["read", "execute"]
+              },
+              {
+                "name": "Maintenance",
+                "permissions": ["read", "write"]
+              }
+            ]
+          },
+          "encryption": {
+            "enabled": true,
+            "algorithm": "AES-256",
+            "certificateExpiry": "2025-12-31"
+          },
+          "firewallRules": [
+            {
+              "id": "FW001",
+              "name": "Allow HTTP",
+              "protocol": "TCP",
+              "port": 80,
+              "action": "allow",
+              "sourceIp": "192.168.1.0/24"
+            },
+            {
+              "id": "FW002",
+              "name": "Allow HTTPS",
+              "protocol": "TCP",
+              "port": 443,
+              "action": "allow",
+              "sourceIp": "192.168.1.0/24"
+            },
+            {
+              "id": "FW003",
+              "name": "Block Telnet",
+              "protocol": "TCP",
+              "port": 23,
+              "action": "deny",
+              "sourceIp": "0.0.0.0/0"
+            }
+          ]
+        }
+      },
+      "maintenanceHistory": [
+        {
+          "id": "MAINT001",
+          "type": "Inspection",
+          "date": "2023-03-15",
+          "technician": "张三",
+          "description": "常规季度检查",
+          "findings": "所有系统正常运行",
+          "actions": ["清洁过滤器", "更新固件"],
+          "parts": []
+        },
+        {
+          "id": "MAINT002",
+          "type": "Repair",
+          "date": "2023-06-10",
+          "technician": "李四",
+          "description": "PLC通信故障修复",
+          "findings": "以太网模块损坏",
+          "actions": ["更换以太网模块", "重新配置网络设置"],
+          "parts": [
+            {
+              "partNumber": "ETH-MOD-01",
+              "description": "以太网通信模块",
+              "quantity": 1,
+              "cost": 1200.50
+            }
+          ]
+        }
+      ],
+      "alarmHistory": [
+        {
+          "id": "ALM001",
+          "timestamp": "2023-05-20T08:15:30Z",
+          "type": "Communication",
+          "severity": "Critical",
+          "message": "与PLC通信中断",
+          "acknowledgedBy": "王五",
+          "acknowledgedAt": "2023-05-20T08:20:45Z",
+          "resolvedAt": "2023-05-20T09:30:15Z"
+        },
+        {
+          "id": "ALM002",
+          "timestamp": "2023-07-12T14:22:10Z",
+          "type": "Temperature",
+          "severity": "Warning",
+          "message": "控制柜内温度过高",
+          "acknowledgedBy": "赵六",
+          "acknowledgedAt": "2023-07-12T14:25:30Z",
+          "resolvedAt": "2023-07-12T15:10:00Z"
+        }
+      ]
+    },
+    {
+      "id": "CAB002",
+      "controller": "R12",
+      "objectType": "Tower",
+      "serialNumber": "SN20230002",
+      "manufacturingDate": "2023-02-20",
+      "status": "maintenance",
+      "location": {
+        "plant": "北京工厂",
+        "building": "B",
+        "floor": 1,
+        "room": "R105",
+        "coordinates": {
+          "x": 45.67,
+          "y": 89.12,
+          "z": 1.8
+        }
+      },
+      "specifications": {
+        "dimensions": {
+          "height": 200.0,
+          "width": 90.5,
+          "depth": 70.3,
+          "unit": "cm"
+        },
+        "weight": {
+          "value": 150.2,
+          "unit": "kg"
+        },
+        "powerRequirements": {
+          "voltage": 220,
+          "frequency": 50,
+          "phases": 1,
+          "maxCurrent": 20
+        },
+        "environmentalRequirements": {
+          "operatingTemperature": {
+            "min": 0,
+            "max": 35,
+            "unit": "°C"
+          },
+          "humidity": {
+            "min": 30,
+            "max": 70,
+            "unit": "%RH"
+          },
+          "ipRating": "IP65"
+        }
+      },
+      "components": [
+        {
+          "id": "COMP101",
+          "type": "PLC",
+          "model": "ABB AC500",
+          "serialNumber": "PLC20230101",
+          "firmwareVersion": "3.0.2",
+          "status": "maintenance",
+          "lastMaintenance": "2023-08-05",
+          "connections": [
+            {
+              "id": "CONN101",
+              "type": "Ethernet",
+              "ipAddress": "192.168.2.100",
+              "subnetMask": "255.255.255.0",
+              "gateway": "192.168.2.1"
+            },
+            {
+              "id": "CONN102",
+              "type": "Modbus",
+              "address": 1,
+              "baudRate": 9600
+            }
+          ]
+        },
+        {
+          "id": "COMP102",
+          "type": "DriveController",
+          "model": "ABB ACS880",
+          "serialNumber": "DRV20230102",
+          "firmwareVersion": "2.9.5",
+          "status": "operational",
+          "powerRating": 15,
+          "controlMode": "DTC"
+        }
+      ]
+    },
+    {
+      "id": "CAB003",
+      "controller": "R13",
+      "objectType": "Panel",
+      "serialNumber": "SN20230003",
+      "manufacturingDate": "2023-03-10",
+      "status": "inactive",
+      "location": {
+        "plant": "广州工厂",
+        "building": "C",
+        "floor": 2,
+        "room": "R210",
+        "coordinates": {
+          "x": 78.90,
+          "y": 12.34,
+          "z": 1.5
+        }
+      },
+      "specifications": {
+        "dimensions": {
+          "height": 160.0,
+          "width": 60.0,
+          "depth": 40.0,
+          "unit": "cm"
+        },
+        "weight": {
+          "value": 95.5,
+          "unit": "kg"
+        },
+        "powerRequirements": {
+          "voltage": 110,
+          "frequency": 60,
+          "phases": 1,
+          "maxCurrent": 15
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "generatedAt": "2023-09-15T10:30:00Z",
+    "generatedBy": "System",
+    "description": "控制柜模拟数据，用于测试文件操作功能",
+    "tags": ["测试", "模拟", "控制柜", "ABB"],
+    "schema": {
+      "type": "object",
+      "properties": {
+        "controlCabinets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "controller", "objectType"]
+          }
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "statistics": {
+    "totalCabinets": 3,
+    "statusSummary": {
+      "active": 1,
+      "maintenance": 1,
+      "inactive": 1
+    },
+    "objectTypeSummary": {
+      "Box": 1,
+      "Tower": 1,
+      "Panel": 1
+    },
+    "locationSummary": {
+      "上海工厂": 1,
+      "北京工厂": 1,
+      "广州工厂": 1
+    }
+  },
+  "references": {
+    "documentations": [
+      {
+        "id": "DOC001",
+        "title": "控制柜安装手册",
+        "version": "2.1",
+        "language": "zh-CN",
+        "url": "https://example.com/docs/installation-guide-zh"
+      },
+      {
+        "id": "DOC002",
+        "title": "控制柜维护手册",
+        "version": "1.5",
+        "language": "zh-CN",
+        "url": "https://example.com/docs/maintenance-guide-zh"
+      }
+    ],
+    "standards": [
+      {
+        "id": "STD001",
+        "name": "IEC 61439",
+        "description": "低压成套开关设备和控制设备",
+        "url": "https://example.com/standards/iec61439"
+      },
+      {
+        "id": "STD002",
+        "name": "GB/T 7251",
+        "description": "低压成套开关设备和控制设备",
+        "url": "https://example.com/standards/gbt7251"
+      }
+    ],
+    "contacts": [
+      {
+        "id": "CONT001",
+        "name": "技术支持部门",
+        "email": "support@example.com",
+        "phone": "+86-10-12345678",
+        "hours": "周一至周五 9:00-18:00"
+      },
+      {
+        "id": "CONT002",
+        "name": "紧急维修服务",
+        "email": "emergency@example.com",
+        "phone": "+86-10-87654321",
+        "hours": "24/7全天候服务"
+      }
+    ]
+  }
+}
