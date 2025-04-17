@@ -1,159 +1,222 @@
-from mcp.server.fastmcp import FastMCP
+from typing import Any, List, Dict, Optional
 import os
+import re
 import json
-from typing import Dict, List, Optional, Any
+from pathlib import Path
+from mcp.server.fastmcp import FastMCP
 
-# Create an MCP server
-mcp = FastMCP("FileSystem MCP Server")
+# Initialize FastMCP server
+mcp = FastMCP("filesystem")
 
-# Define a tool to find files based on user input
-@mcp.tool()
-def find_files(directory: str, pattern: str = None, file_type: str = None) -> List[str]:
-    """
-    Find files in the specified directory that match the given pattern and/or file type.
+# Constants
+MAX_SEARCH_DEPTH = 5  # Maximum search depth
+MAX_RESULTS = 50  # Maximum number of results
+
+
+def search_files(
+    directory: str, pattern: str, max_depth: int = MAX_SEARCH_DEPTH
+) -> List[str]:
+    """Search for files matching the pattern in the specified directory.
 
     Args:
-        directory: The directory to search in
-        pattern: Optional pattern to match in filenames
-        file_type: Optional file extension to filter by (e.g., 'json', 'txt')
+        directory: Directory path to search
+        pattern: File name pattern (supports regular expressions)
+        max_depth: Maximum search depth
 
     Returns:
-        A list of matching file paths
+        List of matching file paths
     """
     results = []
-    try:
-        for root, _, files in os.walk(directory):
-            for file in files:
+    pattern_compiled = re.compile(pattern)
+
+    # Use os.walk to traverse the directory
+    for root, _, files in os.walk(directory):
+        # Check search depth
+        relative_path = os.path.relpath(root, directory)
+        current_depth = len(relative_path.split(os.sep)) if relative_path != "." else 0
+        if current_depth > max_depth:
+            continue
+
+        # Match files
+        for file in files:
+            if pattern_compiled.search(file):
                 file_path = os.path.join(root, file)
-                # Check if file matches the pattern
-                pattern_match = True if pattern is None else pattern.lower() in file.lower()
-                # Check if file matches the file type
-                type_match = True if file_type is None else file.lower().endswith(f'.{file_type.lower()}')
+                results.append(file_path)
 
-                if pattern_match and type_match:
-                    results.append(file_path)
-        return results
-    except Exception as e:
-        return [f"Error finding files: {str(e)}"]
+                # Limit the number of results
+                if len(results) >= MAX_RESULTS:
+                    return results
 
-# Define a tool to read file content
-@mcp.tool()
-def read_file(file_path: str) -> str:
-    """
-    Read and return the content of a file.
+    return results
+
+
+def read_file_content(file_path: str) -> Optional[str]:
+    """Read file content.
 
     Args:
-        file_path: Path to the file to read
+        file_path: File path
 
     Returns:
-        The content of the file as a string
+        File content or None (if reading fails)
     """
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return file.read()
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
     except Exception as e:
-        return f"Error reading file: {str(e)}"
+        return None
 
-# Define a tool to modify file content
-@mcp.tool()
-def modify_file(file_path: str, content: str) -> str:
-    """
-    Modify the content of a file.
+
+def modify_file_parameter(
+    file_path: str, param_pattern: str, new_value: str
+) -> Dict[str, Any]:
+    """Modify specific parameters in a file.
 
     Args:
-        file_path: Path to the file to modify
-        content: New content to write to the file
+        file_path: File path
+        param_pattern: Parameter matching pattern (regular expression)
+        new_value: New parameter value
 
     Returns:
-        Success message or error message
+        Dictionary containing operation results
     """
     try:
-        # Create a backup of the file
-        if os.path.exists(file_path):
-            backup_path = f"{file_path}.bak"
-            with open(file_path, 'r', encoding='utf-8') as src:
-                with open(backup_path, 'w', encoding='utf-8') as dst:
-                    dst.write(src.read())
+        # Read file content
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
 
-        # Write the new content
-        with open(file_path, 'w', encoding='utf-8') as file:
-            file.write(content)
-
-        return f"File modified successfully: {file_path}"
-    except Exception as e:
-        return f"Error modifying file: {str(e)}"
-
-# Define a tool to handle JSON files specifically
-@mcp.tool()
-def update_json(file_path: str, updates: Dict[str, Any]) -> str:
-    """
-    Update specific fields in a JSON file.
-
-    Args:
-        file_path: Path to the JSON file
-        updates: Dictionary of key-value pairs to update in the JSON
-
-    Returns:
-        Success message or error message
-    """
-    try:
-        # Read the existing JSON
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-
-        # Create a backup
-        backup_path = f"{file_path}.bak"
-        with open(backup_path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, indent=2)
-
-        # Update the data
-        def update_nested(d, updates):
-            for k, v in updates.items():
-                if isinstance(v, dict) and k in d and isinstance(d[k], dict):
-                    update_nested(d[k], v)
-                else:
-                    d[k] = v
-
-        update_nested(data, updates)
-
-        # Write the updated JSON
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, indent=2)
-
-        return f"JSON file updated successfully: {file_path}"
-    except Exception as e:
-        return f"Error updating JSON file: {str(e)}"
-
-# Define a resource for file operations
-@mcp.resource("file://{path}")
-def get_file_info(path: str) -> Dict[str, Any]:
-    """
-    Get information about a file.
-
-    Args:
-        path: Path to the file
-
-    Returns:
-        Dictionary with file information
-    """
-    try:
-        if os.path.exists(path):
-            stats = os.stat(path)
+        # Find and replace parameters
+        pattern = re.compile(param_pattern)
+        if not pattern.search(content):
             return {
-                "exists": True,
-                "size": stats.st_size,
-                "last_modified": stats.st_mtime,
-                "is_directory": os.path.isdir(path),
-                "path": path
+                "success": False,
+                "message": f"Parameter pattern not found: {param_pattern}",
             }
-        else:
-            return {"exists": False, "path": path}
-    except Exception as e:
-        return {"error": str(e), "path": path}
 
-# Start the server if this script is run directly
+        # Execute replacement
+        new_content = pattern.sub(new_value, content)
+
+        # Write back to file
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(new_content)
+
+        return {
+            "success": True,
+            "message": f"Successfully modified file parameter",
+            "file_path": file_path,
+            "pattern": param_pattern,
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Error modifying file parameter: {str(e)}",
+        }
+
+
+@mcp.tool()
+async def find_files(directory: str, pattern: str, max_depth: int = 3) -> str:
+    """Find files matching the specified pattern.
+
+    Args:
+        directory: Directory path to search
+        pattern: File name pattern (supports regular expressions)
+        max_depth: Maximum search depth (default is 3)
+    """
+    # Verify directory exists
+    if not os.path.isdir(directory):
+        return f"Error: Directory '{directory}' does not exist"
+
+    # Search files
+    results = search_files(directory, pattern, max_depth)
+
+    # Format results
+    if not results:
+        return f"No files matching '{pattern}' found in '{directory}'"
+
+    formatted_results = "\n".join(results)
+    return f"Found {len(results)} matching files:\n{formatted_results}"
+
+
+@mcp.tool()
+async def view_file(file_path: str) -> str:
+    """View file content.
+
+    Args:
+        file_path: File path
+    """
+    # Verify file exists
+    if not os.path.isfile(file_path):
+        return f"Error: File '{file_path}' does not exist"
+
+    # Read file content
+    content = read_file_content(file_path)
+    if content is None:
+        return f"Error: Unable to read file '{file_path}'"
+
+    return f"Content of file '{file_path}':\n\n{content}"
+
+
+@mcp.tool()
+async def update_parameter(file_path: str, param_pattern: str, new_value: str) -> str:
+    """Update specific parameters in a file.
+
+    Args:
+        file_path: File path
+        param_pattern: Parameter matching pattern (regular expression)
+        new_value: New parameter value
+    """
+    # Verify file exists
+    if not os.path.isfile(file_path):
+        return f"Error: File '{file_path}' does not exist"
+
+    # Modify parameter
+    result = modify_file_parameter(file_path, param_pattern, new_value)
+
+    if result["success"]:
+        return f"Success: {result['message']}\nFile: {file_path}\nParameter pattern: {param_pattern}"
+    else:
+        return f"Error: {result['message']}"
+
+
+@mcp.tool()
+async def list_directory(directory: str) -> str:
+    """List directory contents.
+
+    Args:
+        directory: Directory path
+    """
+    # Verify directory exists
+    if not os.path.isdir(directory):
+        return f"Error: Directory '{directory}' does not exist"
+
+    try:
+        # Get directory contents
+        items = os.listdir(directory)
+
+        # Distinguish between files and directories
+        dirs = []
+        files = []
+
+        for item in items:
+            item_path = os.path.join(directory, item)
+            if os.path.isdir(item_path):
+                dirs.append(f"[Directory] {item}/")
+            else:
+                files.append(f"[File] {item}")
+
+        # Format results
+        result = f"Contents of directory '{directory}':\n"
+        if dirs:
+            result += "\nDirectories:\n" + "\n".join(dirs)
+        if files:
+            result += "\n\nFiles:\n" + "\n".join(files)
+
+        return result
+
+    except Exception as e:
+        return f"Error listing directory contents: {str(e)}"
+
+
 if __name__ == "__main__":
-    # Start the server on port 8000
-    import uvicorn
-    print("Starting FileSystem MCP Server on http://localhost:8000")
-    uvicorn.run(mcp.fastapi_app, host="127.0.0.1", port=8000)
+    # Initialize and run the server
+    mcp.run(transport="stdio")

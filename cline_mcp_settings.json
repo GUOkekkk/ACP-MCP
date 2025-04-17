@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "ACP-MCP": {
+            "disabled": false,
+            "timeout": 60,
+            "command": "uv",
+            "args": [
+                "--directory",
+                "D:\\Data\\users\\Desktop\\ABB\\projects\\AI\\acp-mcp",
+                "run",
+                "server.py"
+            ],
+            "transportType": "stdio"
+        }
+    }
+}
